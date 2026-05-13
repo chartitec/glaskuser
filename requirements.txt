@@ -1,0 +1,14 @@
+llama-index-core==0.12.10
+llama-index-embeddings-huggingface==0.5.5
+llama-index-llms-anthropic==0.6.5
+llama-index-vector-stores-chroma==0.4.2
+chromadb==0.6.3
+anthropic==0.51.0
+pandas==2.2.3
+openpyxl==3.1.5
+sentence-transformers>=2.7.0,<3.0
+transformers>=4.40.0,<4.50.0
+openai-whisper
+rank_bm25
+jieba
+docx2txt>=0.8

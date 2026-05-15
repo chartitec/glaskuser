@@ -1,153 +1,155 @@
-# GlaskUser — 把历史用户研究变成随时可问的 AI 用户群
+# GlaskUser — Turn Historical User Research into an Always-Available AI User Panel
 
-历史用户访谈资料的价值往往远未被充分利用：做完即归档，难以复用，想持续挖掘用户需求，要么需要持续投入预算，要么只能依靠局部用户、片面推测。GlaskUser 面向以下场景
+[中文版](README.zh-CN.md)
 
-- 缺乏用户研究预算，想从已有录音或文字稿中持续挖掘可用洞察
-- 有新问题想追问同一批用户，却早已无法联系
-- 积累了大量访谈材料，定位某个具体观点却要翻半天
-- 想跨多份访谈提炼群体共识，但不确定 AI 总结是否靠谱
+The value of historical user interview data is often vastly underutilized: archived once complete, hard to reuse. To continuously mine user insights, you either need sustained budget or must rely on partial, speculative inference. GlaskUser addresses these scenarios:
 
-**核心做法：把访谈原始记录，通过用户研究的实证框架，转化为可反复提问的 AI 分身。** 分身的每条回答均锚定该用户的真实语料；心理模型从访谈中提炼，包含核心价值观、决策框架与可迁移的推断规则。无直接证据时，分身会明确说"这个没谈过，不好说"——拒绝凭空编造。
+- Lacking a user research budget, but wanting to extract actionable insights from existing recordings or transcripts
+- Having new questions for the same users, but can no longer contact them
+- Accumulating a large volume of interview material, yet struggling to locate a specific opinion
+- Wanting to distill group consensus across multiple interviews, but unsure if AI summaries are trustworthy
 
----
-
-## 与现有方案的对比
-
-|           | GlaskUser                                         | atypica.ai 等 AI 用户研究平台 | 直接问大模型            | 企业 IM + 知识库       |
-| --------- | ------------------------------------------------- | ---------------------- | ----------------- | ----------------- |
-| **基础信息**  | 你自己的访谈录音/文字稿                                      | 互联网公开数据或合成画像           | 模型训练数据（通用知识）      | 内部文档              |
-| **用户来源**  | 你实际访谈的真实用户                                        | AI 构建的平均用户或资料上传生成用户    | 凭空想象              | 内部文档，如有真实访谈则为真实用户 |
-| **回答依据**  | 引用原始访谈片段，标注置信度；衍生回答基于用户心理模型 + 原始语料推理              | 无从溯源                   | 无从溯源              | 返回文档段落            |
-| **不确定时**  | 明确说"这个没聊过，不知道"                                    | 流畅编造，带有明显的"知识的诅咒"      | 流畅编造，带有明显的"知识的诅咒" | 无结果或低相关片段         |
-| **追问能力**  | 支持，如同再做一次访谈                                       | 支持，无边界                 | 支持，但无边界           | 不支持               |
-| **跨用户分析** | 提取多用户一致的底层决策驱动因子                                  | 支持                     | 支持，但无证据           | 不支持               |
-| **数据隐私**  | 语音转录和语义检索完全离线；提问时语料经 Claude Code 传给 Anthropic API | 访谈资料上传至第三方平台，存在泄露风险    | 上传至模型服务商          | 内网运行              |
+**Core approach: transform raw interview records into queryable AI personas using empirical user research frameworks.** Every persona response is anchored to that user's actual corpus. Psychological models are extracted from interviews, encompassing core values, decision frameworks, and transferable inference rules. When no direct evidence exists, the persona explicitly says "We didn't discuss this — I can't say" — refusing to fabricate.
 
 ---
 
-## 使用场景
+## Comparison with Existing Solutions
 
-- **提炼群体洞察**：跨用户找到共同的决策逻辑和底层驱动力
-- **验证产品决策**：新功能方案出来后，向用户分身提问，快速收集基于**历史用户群，用户决策框架，产品相似度**的反馈
-- **对比个体差异**：同一问题，多个用户分身各自怎么说
+|           | GlaskUser                                         | AI user research platforms (atypica.ai, etc.) | Prompting LLMs directly    | Enterprise IM + Knowledge Base |
+| --------- | ------------------------------------------------- | --------------------------------------------- | -------------------------- | ------------------------------ |
+| **Source**  | Your own interview recordings / transcripts         | Public web data or synthetic profiles           | Model training data (general) | Internal documents              |
+| **Users**   | Real users you actually interviewed                  | AI-constructed average users or uploaded profiles | Imaginary                    | Internal docs; real if from interviews |
+| **Evidence** | Cites original interview excerpts, confidence-labeled; derived answers based on user psychological model + corpus reasoning | Untraceable                                    | Untraceable                 | Returns document snippets        |
+| **Uncertainty** | Explicitly says "We didn't discuss this, I don't know" | Fluent fabrication with obvious "curse of knowledge" | Fluent fabrication with obvious "curse of knowledge" | No results or low-relevance snippets |
+| **Follow-up** | Supported, like conducting another interview         | Supported, unbounded                           | Supported, unbounded         | Not supported                    |
+| **Cross-user analysis** | Extracts consistent underlying decision drivers across users | Supported                                       | Supported, no evidence       | Not supported                    |
+| **Data Privacy** | Voice transcription and semantic search run fully offline; corpus is passed to Anthropic API via Claude Code for questioning | Interview materials uploaded to third-party platforms, risk of leakage | Uploaded to model provider   | Internal network                |
 
 ---
 
-## 前提条件
+## Use Cases
 
-- 已安装 [Claude Code]，已配置 Anthropic API Key
-- 至少一名用户的访谈录音或文字稿，越多越好，覆盖越广、答案越准
+- **Distill group insights**: Find shared decision logic and underlying drivers across users
+- **Validate product decisions**: After drafting new features, query user personas to quickly collect feedback rooted in historical user base, decision frameworks, and product similarity
+- **Compare individual differences**: The same question, how do multiple user personas each respond
 
 ---
 
-## 首次使用
+## Prerequisites
 
-### 第一步：解压 + 放入访谈资料
+- [Claude Code] installed, with Anthropic API Key configured
+- Interview recordings or transcripts for at least one user; the more the better — broader coverage yields more accurate answers
 
-将 `glaskuser_dist.zip` 解压到任意位置，然后把访谈文件放入 `data/` 文件夹。**文件名以用户 ID 开头**：
+---
+
+## First-Time Setup
+
+### Step 1: Unzip & Add Interview Materials
+
+Unzip `glaskuser_dist.zip` to any location, then place interview files into the `data/` folder. **Filenames must start with a user ID**:
 
 ```
 data/
-├── U001_访谈录音.mp3
-├── U001_访谈总结.docx        ← 同一用户多份文件自动合并
+├── U001_interview.mp3
+├── U001_summary.docx          ← Multiple files for the same user are auto-merged
 ├── U002_interview.m4a
-├── U003_逐字稿.txt
+├── U003_transcript.txt
 └── ...
 ```
 
-用户 ID 可以是任意字母数字组合，也支持脱敏格式（如 `135****3824`）。
+User IDs can be any alphanumeric combination; anonymized formats (e.g., `135****3824`) are also supported.
 
-支持的格式：
+Supported formats:
 
-| 类型                                  | 格式                                                 |
-| ----------------------------------- | -------------------------------------------------- |
-| 访谈录音                                | `.mp3` `.wav` `.m4a` `.aac` `.ogg` `.flac` `.webm` |
-| 访谈视频                                | `.mp4` `.mov` `.avi` `.mkv`                        |
-| 文字稿（逐字稿或总结）                         | `.txt` `.pdf` `.md` `.docx`                        |
-| 问卷（含 question/answer 列）             | `.csv` `.xlsx` `.xls`                              |
-| 行为日志（含 user_id/feature/use_count 列） | `.csv` `.xlsx` `.xls`                              |
-
----
-
-### 第二步：用 Claude Code 打开文件夹
-
-在终端中进入该文件夹，打开 Claude Code；或先打开 Claude Code，再将文件夹拖入。
+| Type                                    | Formats                                              |
+| --------------------------------------- | ---------------------------------------------------- |
+| Interview audio                         | `.mp3` `.wav` `.m4a` `.aac` `.ogg` `.flac` `.webm` |
+| Interview video                         | `.mp4` `.mov` `.avi` `.mkv`                         |
+| Transcripts (verbatim or summary)       | `.txt` `.pdf` `.md` `.docx`                         |
+| Surveys (with question/answer columns)  | `.csv` `.xlsx` `.xls`                               |
+| Usage logs (with user_id/feature/use_count columns) | `.csv` `.xlsx` `.xls`                               |
 
 ---
 
-### 第三步：运行初始化命令
+### Step 2: Open the Folder with Claude Code
+
+Navigate to the folder in your terminal and launch Claude Code; or open Claude Code first, then drag the folder in.
+
+---
+
+### Step 3: Run the Initialization Command
 
 ```
 /glaskuser_init
 ```
 
-Claude 将全程引导，无需手动操作：
+Claude will guide you through the entire process — no manual operations needed:
 
-**阶段一：安装环境**（自动执行）
+**Phase 1: Environment Setup** (automatic)
 
-1. 检查 Python 版本（需 3.10+）
-2. 安装所有 pip 依赖
-3. 自动安装 ffmpeg（macOS 用 brew，Windows 用 winget 或 choco，Linux 用 apt）
-4. 加载 Whisper 语音识别模型（~461MB）
-5. 加载语义检索模型 bge-small-zh-v1.5（~92MB）
+1. Check Python version (3.10+ required)
+2. Install all pip dependencies
+3. Auto-install ffmpeg (macOS via brew, Windows via winget or choco, Linux via apt)
+4. Load the Whisper speech recognition model (~461MB)
+5. Load the semantic search model bge-small-zh-v1.5 (~92MB)
 
-压缩包内已附带两个模型时直接加载，否则从镜像自动下载。
+If both models are included in the zip package, they load directly; otherwise they are auto-downloaded from a mirror.
 
-**阶段二：交互向导**（需确认几步）
+**Phase 2: Interactive Wizard** (a few confirmations needed)
 
-6. 询问你的数据类型，展示对应命名规范
-7. 等你将文件放入 `data/`，扫描并预览分类结果
-8. 构建向量知识库（音频自动转录，文字自动建索引）
-9. 若检测到新用户且尚无心理模型：询问用户类型，自动提取心理模型
-10. 引导进入搜索或分身对话模式
+6. Ask about your data types, display corresponding naming conventions
+7. Wait for you to place files in `data/`, then scan and preview classification results
+8. Build the vector knowledge base (audio auto-transcribed, text auto-indexed)
+9. If new users are detected without psychological models: ask for user type, auto-extract psychological models
+10. Guide you into search or persona conversation mode
 
-**关于转录速度**：首次处理音频文件较慢（约每分钟录音 30 秒处理时间），转录结果会缓存，后续重复运行瞬间完成。
+**About transcription speed**: First-time audio processing is relatively slow (~30 seconds per minute of recording). Transcription results are cached — subsequent runs complete almost instantly.
 
 ---
 
-## 后续使用
+## Ongoing Usage
 
-### 知识库不变时，直接提问
+### When the Knowledge Base Is Unchanged, Ask Directly
 
 ```
-/glaskuser_simulate   ← 与单个用户分身对话（第一人称，支持多轮追问）
-/glaskuser_search     ← 检索原始访谈片段（研究员视角，直接看原始证据）
+/glaskuser_simulate   ← Talk to a single user persona (first-person, supports multi-turn follow-up)
+/glaskuser_search     ← Search raw interview excerpts (researcher perspective, view original evidence directly)
 ```
 
-### 新增访谈资料后
+### After Adding New Interview Materials
 
-将新文件放入 `data/`，然后运行：
+Place new files into `data/`, then run:
 
 ```
 /glaskuser_build
 ```
 
-系统只处理新增或变更的文件，已转录和已索引的内容自动跳过，通常几秒内完成。之后直接使用 `/glaskuser_simulate` 或 `/glaskuser_search` 提问即可。
+The system only processes new or changed files; already-transcribed and already-indexed content is auto-skipped, typically completing within seconds. Afterward, use `/glaskuser_simulate` or `/glaskuser_search` to ask questions as usual.
 
 ---
 
-## 可选配置：用户类型
+## Optional Configuration: User Types
 
-`/glaskuser_build`（以及 `/glaskuser_init` 的构建步骤）在检测到新用户且尚无心理模型时，会询问用户类型并自动创建 `data/user_types.json`。你也可以手动编辑该文件：
+`/glaskuser_build` (and the build step of `/glaskuser_init`) will ask for user type and auto-create `data/user_types.json` when new users are detected without psychological models. You can also manually edit this file:
 
 ```json
-{"U001": "家长", "U002": "学生", "U003": "用户"}
+{"U001": "parent", "U002": "student", "U003": "user"}
 ```
 
-用户类型决定心理模型的提取维度：
+User type determines the extraction dimensions of the psychological model:
 
-| 类型                | 维度数 | 专项维度                             |
-| ----------------- | --- | -------------------------------- |
-| 家长                | 8   | 教育理念、亲子关系、社会阶层感知、品牌认知（+ 通用 4 维度） |
-| 学生 / 老师 / 用户 / 其他 | 4   | 核心价值观、决策框架、技术态度、消费特征             |
+| Type                          | Dimensions | Specialized Dimensions                                       |
+| ----------------------------- | ---------- | ------------------------------------------------------------ |
+| parent                        | 8          | Educational philosophy, parent-child relationship, social class perception, brand cognition (+ 4 general dimensions) |
+| student / teacher / user / others | 4          | Core values, decision framework, tech attitude, economic profile |
 
-同一批用户类型不同时，可逐条修改 JSON。文件不存在时默认按"用户"（4 维度）处理。
+If users in the same batch have different types, modify the JSON per entry. When the file does not exist, all users default to "user" (4 dimensions).
 
 ---
 
-## 注意事项
+## Notes
 
-- 语音转录和语义检索完全离线，无需网络；提问时语料经 Claude Code 传给 Anthropic API，消耗 API 调用额度
-- 用户语料越丰富，分身回答越准确——请尽量在充分的访谈材料基础上操作
-- 构建分身会消耗较多 Token，请确认**模型是否合适，额度是否充足**
-- 问卷和行为日志为可选数据，仅有录音或文字稿也可正常建立分身
+- Voice transcription and semantic search run fully offline; corpus is passed to Anthropic API via Claude Code for questioning, consuming API call quota
+- The richer the user corpus, the more accurate persona responses — operate on sufficient interview material whenever possible
+- Building personas consumes significant tokens — verify your model choice and quota availability
+- Surveys and usage logs are optional; personas can be built with only recordings or transcripts
